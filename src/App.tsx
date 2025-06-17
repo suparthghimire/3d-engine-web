@@ -7,6 +7,9 @@ import AddMeshDialog from "./components/3d/add-mesh-dialog";
 import { useHotkeys } from "react-hotkeys-hook";
 import { v4 as uuidv4 } from "uuid";
 import type { MeshObject } from "./lib/types/mesh";
+import { HelpDialog } from "./components/help-dialog";
+import { Button } from "./components/ui/button";
+import { Box, InfoIcon } from "lucide-react";
 
 const initialMesh: MeshObject = {
   id: uuidv4(),
@@ -17,6 +20,7 @@ const initialMesh: MeshObject = {
 
 export default function App() {
   const [addMeshDialogOpen, setAddMeshDialogOpen] = useState(false);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(true);
 
   const [meshes, setMeshes] = useState<MeshObject[]>([initialMesh]);
 
@@ -72,6 +76,16 @@ export default function App() {
             }}
           />
         </Canvas>
+        <div className="flex items-center gap-2 w-full absolute justify-center bottom-2">
+          <Button onClick={() => setHelpDialogOpen(true)}>
+            <InfoIcon />
+            Help
+          </Button>
+          <Button onClick={() => setAddMeshDialogOpen(true)}>
+            <Box />
+            Add Mesh
+          </Button>
+        </div>
         <AddMeshDialog
           open={addMeshDialogOpen}
           onOpenChange={setAddMeshDialogOpen}
@@ -89,6 +103,7 @@ export default function App() {
             setSelectedMeshId(id);
           }}
         />
+        <HelpDialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
       </div>
     </div>
   );
