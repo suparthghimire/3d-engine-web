@@ -3,8 +3,11 @@ import FlipAbleGrid from "./components/flip-able-grid";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSceneStore } from "@/store/scene.store";
+import Mesh from "./components/mesh";
 function Scene() {
-  const initialPosition = useSceneStore((state) => state.orbitPosition);
+  const { orbitPosition: initialPosition, meshes } = useSceneStore(
+    (state) => state
+  );
   return (
     <Canvas camera={{ position: initialPosition, fov: 50 }}>
       <ambientLight intensity={0.2} />
@@ -25,6 +28,9 @@ function Scene() {
         makeDefault
         mouseButtons={{ MIDDLE: THREE.MOUSE.ROTATE }}
       />
+      {meshes.map((mesh) => (
+        <Mesh key={mesh.id} {...mesh} />
+      ))}
     </Canvas>
   );
 }

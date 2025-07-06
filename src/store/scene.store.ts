@@ -1,10 +1,15 @@
 import { create } from "zustand";
 
-export type T_MeshType = "cube" | "sphere" | "cone" | "cylinder";
+export type T_MeshType = "plane" | "cube" | "sphere" | "cone" | "cylinder";
 
 export type T_Mesh = {
   id: string;
   type: T_MeshType;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
+
+  color: string;
 };
 
 // Constants
@@ -20,7 +25,7 @@ export type T_SceneStore = {
   setSelectedMesh: (mesh: T_Mesh | null) => void;
   meshes: T_Mesh[];
   setMeshes: (meshes: T_Mesh[]) => void;
-  addMesh: (meshType: T_Mesh) => void;
+  addMesh: (meshType: T_MeshType) => void;
   removeMesh: (meshId: string) => void;
   updateMesh: (args: { meshId: string; payload: Omit<T_Mesh, "id"> }) => void;
 };
@@ -36,10 +41,20 @@ export const useSceneStore = create<T_SceneStore>((set) => {
     setSelectedMesh: (mesh: T_Mesh | null) => set({ selectedMesh: mesh }),
     meshes: [],
     setMeshes: (newMeshes) => set({ meshes: newMeshes }),
-    addMesh: (newMesh) =>
-      set((pv) => ({
-        meshes: [...pv.meshes, newMesh],
-      })),
+    addMesh: (meshType) =>
+      set((pv) => {
+        const newMesh: T_Mesh = {
+          color: "white",
+          id: "#", // TODO: Use cuid,
+          position: [0, 0, 0], // Todo: Use marker position in future
+          rotation: [0, 0, 0],
+          scale: [1, 1, 1],
+          type: meshType,
+        };
+        return {
+          meshes: [...pv.meshes, newMesh],
+        };
+      }),
     removeMesh: (meshId: string) =>
       set((pv) => ({
         meshes: pv.meshes.filter((mesh) => mesh.id !== meshId),
