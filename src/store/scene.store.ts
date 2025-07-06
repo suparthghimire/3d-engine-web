@@ -1,4 +1,4 @@
-import { createStore } from "zustand";
+import { create } from "zustand";
 
 export type T_MeshType = "cube" | "sphere" | "cone" | "cylinder";
 
@@ -6,7 +6,16 @@ export type T_Mesh = {
   id: string;
   type: T_MeshType;
 };
-type T_SceneStore = {
+
+// Constants
+export const DEFAULT_ORBIT_POSITION = [10, 10, 10] as [number, number, number];
+
+export type T_SceneStore = {
+  // CANVAS
+  orbitPosition: [number, number, number];
+  setOrbitPosition: (position: [number, number, number]) => void;
+
+  // MESHES
   selectedMesh: T_Mesh | null;
   setSelectedMesh: (mesh: T_Mesh | null) => void;
   meshes: T_Mesh[];
@@ -16,8 +25,13 @@ type T_SceneStore = {
   updateMesh: (args: { meshId: string; payload: Omit<T_Mesh, "id"> }) => void;
 };
 
-export const useSceneStore = createStore<T_SceneStore>((set) => {
+export const useSceneStore = create<T_SceneStore>((set) => {
   return {
+    // Scene
+    orbitPosition: DEFAULT_ORBIT_POSITION,
+    setOrbitPosition: (position) => set({ orbitPosition: position }),
+
+    // Mesh
     selectedMesh: null,
     setSelectedMesh: (mesh: T_Mesh | null) => set({ selectedMesh: mesh }),
     meshes: [],

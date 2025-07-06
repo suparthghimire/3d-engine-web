@@ -3,6 +3,7 @@ import AppInfoDialog from "./components/partials/dialogs/app-info.dialog";
 import Header from "./components/partials/header/header";
 import { useLocalStorage } from "./hooks/use-local-storage";
 import { LOCALSTORAGE_KEYS } from "./lib/localStorage.keys";
+import Scene from "./components/scene";
 
 function App() {
   const { getItem, setItem } = useLocalStorage();
@@ -32,8 +33,8 @@ function App() {
   }
 
   return (
-    <main>
-      <header className="p-5">
+    <main className="h-screen relative">
+      <header className="absolute top-5 left-5 z-20">
         <Header />
       </header>
       <AppInfoDialog
@@ -42,6 +43,7 @@ function App() {
         open={dialogOpened}
         onOpenChange={handleOpenChange}
       />
+      <Scene />
     </main>
   );
 }
