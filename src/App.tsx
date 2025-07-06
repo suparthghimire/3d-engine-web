@@ -4,6 +4,7 @@ import Header from "./components/partials/header/header";
 import { useLocalStorage } from "./hooks/use-local-storage";
 import { LOCALSTORAGE_KEYS } from "./lib/localStorage.keys";
 import Scene from "./components/scene";
+import SidePanel from "./components/partials/side-panel";
 
 function App() {
   const { getItem, setItem } = useLocalStorage();
@@ -37,6 +38,9 @@ function App() {
       <header className="absolute top-5 left-5 z-20">
         <Header />
       </header>
+      <div className="absolute z-20 w-fit top-20 left-5">
+        <SidePanel />
+      </div>
       <AppInfoDialog
         showOnStartup={showOnStartup}
         onShowOnStartupChange={handleShowOnStartup}
