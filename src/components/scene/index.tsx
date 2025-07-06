@@ -4,12 +4,28 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSceneStore } from "@/store/scene.store";
 import Mesh from "./components/mesh";
+import { EffectComposer, Outline } from "@react-three/postprocessing";
+import { useRef } from "react";
+
 function Scene() {
-  const { orbitPosition: initialPosition, meshes } = useSceneStore(
-    (state) => state
-  );
+  const setSelectedMeshId = useSceneStore((state) => state.setSelectedMeshId);
+  const {
+    orbitPosition: initialPosition,
+    meshes,
+    selectedMeshId,
+  } = useSceneStore((state) => state);
+
+  const meshRefs = useRef<Record<string, THREE.Mesh | null>>({});
+
+  const selectedRef = selectedMeshId ? meshRefs.current[selectedMeshId] : null;
+
   return (
-    <Canvas camera={{ position: initialPosition, fov: 50 }}>
+    <Canvas
+      camera={{ position: initialPosition, fov: 50 }}
+      onPointerMissed={() => {
+        setSelectedMeshId(null);
+      }}
+    >
       <ambientLight intensity={0.2} />
       <directionalLight
         castShadow
@@ -29,8 +45,23 @@ function Scene() {
         mouseButtons={{ MIDDLE: THREE.MOUSE.ROTATE }}
       />
       {meshes.map((mesh) => (
-        <Mesh key={mesh.id} {...mesh} />
+        <Mesh
+          ref={(el) => {
+            meshRefs.current[mesh.id] = el;
+          }}
+          {...mesh}
+        />
       ))}
+      <EffectComposer multisampling={8} autoClear={false}>
+        <Outline
+          selection={selectedRef ? [selectedRef] : []}
+          blur
+          width={500}
+          edgeStrength={5}
+          visibleEdgeColor={new THREE.Color("#ca7832").getHex()}
+          hiddenEdgeColor={new THREE.Color("#ca7832").getHex()}
+        />
+      </EffectComposer>
     </Canvas>
   );
 }

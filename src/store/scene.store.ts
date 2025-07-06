@@ -1,5 +1,5 @@
 import { create } from "zustand";
-
+import { createId } from "@paralleldrive/cuid2";
 export type T_MeshType = "plane" | "cube" | "sphere" | "cone" | "cylinder";
 
 export type T_Mesh = {
@@ -21,8 +21,9 @@ export type T_SceneStore = {
   setOrbitPosition: (position: [number, number, number]) => void;
 
   // MESHES
+  selectedMeshId: string | null;
+  setSelectedMeshId: (meshId: string | null) => void;
   selectedMesh: T_Mesh | null;
-  setSelectedMesh: (mesh: T_Mesh | null) => void;
   meshes: T_Mesh[];
   setMeshes: (meshes: T_Mesh[]) => void;
   addMesh: (meshType: T_MeshType) => void;
@@ -38,20 +39,39 @@ export const useSceneStore = create<T_SceneStore>((set) => {
 
     // Mesh
     selectedMesh: null,
-    setSelectedMesh: (mesh: T_Mesh | null) => set({ selectedMesh: mesh }),
+    selectedMeshId: null,
+    setSelectedMeshId: (meshId) =>
+      set((pv) => {
+        if (meshId === null) {
+          return {
+            ...pv,
+            selectedMeshId: null,
+            selectedMesh: null,
+          };
+        }
+        const selectedMesh = pv.meshes.find((mesh) => mesh.id === meshId);
+
+        if (!selectedMesh) return pv;
+        return {
+          ...pv,
+          selectedMeshId: meshId,
+          selectedMesh: selectedMesh,
+        };
+      }),
     meshes: [],
     setMeshes: (newMeshes) => set({ meshes: newMeshes }),
     addMesh: (meshType) =>
       set((pv) => {
         const newMesh: T_Mesh = {
           color: "white",
-          id: "#", // TODO: Use cuid,
+          id: createId(), // TODO: Use cuid,
           position: [0, 0, 0], // Todo: Use marker position in future
           rotation: [0, 0, 0],
           scale: [1, 1, 1],
           type: meshType,
         };
         return {
+          ...pv,
           meshes: [...pv.meshes, newMesh],
         };
       }),
