@@ -5,12 +5,17 @@ import { useLocalStorage } from "./hooks/use-local-storage";
 import { LOCALSTORAGE_KEYS } from "./lib/localStorage.keys";
 import Scene from "./components/scene";
 import SidePanel from "./components/partials/side-panel";
+import { useSceneStore } from "./store/scene.store";
 
 function App() {
   const { getItem, setItem } = useLocalStorage();
   const storedDialogOpen = getItem<boolean>(
     LOCALSTORAGE_KEYS.app_info_dialog_startup,
     false
+  );
+
+  const selectedMesh = useSceneStore(
+    (state) => state.meshes.find((m) => m.id === state.selectedMeshId) || null
   );
 
   const [dialogOpened, setDialogOpened] = useState(false);
@@ -38,9 +43,11 @@ function App() {
       <header className="absolute top-5 left-5 z-20">
         <Header />
       </header>
-      <div className="absolute z-20 w-fit top-20 left-5">
-        <SidePanel />
-      </div>
+      {selectedMesh && (
+        <div className="absolute z-20 w-fit top-20 left-5">
+          <SidePanel />
+        </div>
+      )}
       <AppInfoDialog
         showOnStartup={showOnStartup}
         onShowOnStartupChange={handleShowOnStartup}

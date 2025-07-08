@@ -23,7 +23,7 @@ export type T_SceneStore = {
   // MESHES
   selectedMeshId: string | null;
   setSelectedMeshId: (meshId: string | null) => void;
-  selectedMesh: T_Mesh | null;
+  // selectedMesh: T_Mesh | null;
   meshes: T_Mesh[];
   setMeshes: (meshes: T_Mesh[]) => void;
   addMesh: (meshType: T_MeshType) => void;
