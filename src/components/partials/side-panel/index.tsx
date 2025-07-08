@@ -1,131 +1,135 @@
-import DraggableNumberInput from "@/components/ui/draggable-number-input";
-import { cn } from "@/lib/utils";
-import { useSceneStore, type T_Mesh } from "@/store/scene.store";
-import { useCallback, useState } from "react";
-import { Link, Link2Off } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useSceneStore } from "@/store/scene.store";
+import { useMemo, useState } from "react";
+import {
+  Box,
+  Circle,
+  Cylinder,
+  Move3D,
+  Palette,
+  Settings,
+  Square,
+  Triangle,
+} from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import type { DialogProps } from "@radix-ui/react-dialog";
+import TransformControls from "./tabs/transform-control";
+import MaterialControl from "./tabs/material-control";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-const TRANSFORM_TYPES = ["translation", "rotation", "scale"] as const;
-const TRANSFORM_AXIS = ["x", "y", "z"] as const;
+const TabsConfig = [
+  {
+    id: "transform",
+    label: "Transform",
+    icon: Move3D,
+    component: TransformControls,
+  },
+  {
+    id: "material",
+    label: "Material",
+    icon: Palette,
+    component: MaterialControl,
+  },
+] as const;
 
-type T_TransformType = (typeof TRANSFORM_TYPES)[number];
-type T_TransformAxis = (typeof TRANSFORM_AXIS)[number];
+type T_TabsConfig = (typeof TabsConfig)[number];
 
-function SidePanel() {
-  const [linkedTransforms, setLinkedTransforms] = useState<
-    Record<T_TransformType, boolean>
-  >({
-    translation: false,
-    rotation: false,
-    scale: false,
-  });
-  const updateMesh = useSceneStore((state) => state.updateMesh);
+function SidePanel(props: DialogProps) {
+  return (
+    <Sheet {...props}>
+      <SheetContent
+        hideOverlay
+        className="rounded-2xl bg-secondary/50 backdrop-blur-lg w-[500px] mt-10 border  me-2"
+      >
+        <SidePanelContent />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function SidePanelContent() {
+  const [activeTab, setActiveTab] = useState<T_TabsConfig["id"]>("transform");
   const selectedMesh = useSceneStore(
     (state) => state.meshes.find((m) => m.id === state.selectedMeshId) || null
   );
 
-  const getAxisIndex = (axis: T_TransformAxis): 0 | 1 | 2 => {
-    return axis === "x" ? 0 : axis === "y" ? 1 : 2;
-  };
+  const IconByMeshType = useMemo(() => {
+    if (!selectedMesh) return Settings;
 
-  const transformBinding = useCallback(
-    (args: { type: T_TransformType; axis: T_TransformAxis }) => {
-      if (!selectedMesh) return null;
-
-      const { type, axis } = args;
-      const axisIndex = getAxisIndex(axis);
-
-      const prop = {
-        translation: "position",
-        rotation: "rotation",
-        scale: "scale",
-      }[type] as keyof T_Mesh;
-
-      const currentValue = selectedMesh[prop]?.[axisIndex];
-      if (typeof currentValue !== "number") return null;
-
-      const isLinked = linkedTransforms[type];
-      return {
-        value: currentValue,
-        onChange: (val: number) => {
-          const updatedArray = [...selectedMesh[prop]] as number[];
-
-          if (isLinked) {
-            updatedArray[0] = val;
-            updatedArray[1] = val;
-            updatedArray[2] = val;
-          } else {
-            updatedArray[axisIndex] = val;
-          }
-
-          updateMesh({
-            meshId: selectedMesh.id,
-            payload: {
-              ...selectedMesh,
-              [prop]: updatedArray,
-            },
-          });
-        },
-      };
-    },
-    [selectedMesh, updateMesh, linkedTransforms]
-  );
-
-  const toggleLink = (type: T_TransformType) => {
-    setLinkedTransforms((prev) => ({
-      ...prev,
-      [type]: !prev[type],
-    }));
-  };
+    switch (selectedMesh.type) {
+      case "cone":
+        return Triangle;
+      case "cube":
+        return Box;
+      case "sphere":
+        return Circle;
+      case "cylinder":
+        return Cylinder;
+      case "plane":
+        return Square;
+      default:
+        return Settings;
+    }
+  }, [selectedMesh]);
 
   if (!selectedMesh) return null;
 
   return (
-    <aside className="bg-neutral-800 max-w-60 p-2 px-3 rounded-lg text-white flex flex-col gap-6">
-      {TRANSFORM_TYPES.map((type) => (
-        <div className="flex flex-col gap-1" key={`tc-${type}`}>
-          <div className="flex items-center justify-between">
-            <p className="capitalize font-semibold text-sm">{type} </p>
-            <Button
-              variant={linkedTransforms[type] ? "default" : "outline"}
-              size="icon"
-              onClick={() => toggleLink(type)}
-            >
-              {linkedTransforms[type] ? (
-                <Link className="w-4 h-4" />
-              ) : (
-                <Link2Off className="w-4 h-4" />
-              )}
-            </Button>
+    <aside className="flex flex-col">
+      <div className="p-4 border-b border-neutral-800">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <IconByMeshType className="w-5 h-5 text-white" />
           </div>
-          <div className="flex items-center">
-            {TRANSFORM_AXIS.map((axis, axisIdx) => {
-              const binding = transformBinding({ type, axis });
-              if (!binding) return null;
-
-              return (
-                <div
-                  className="flex flex-col gap-1"
-                  key={`tc-${type}-a-${axis}`}
-                >
-                  <span className="text-xs font-medium">{axis}</span>
-                  <DraggableNumberInput
-                    className={cn({
-                      "border-l-0 rounded-tl-none rounded-bl-none":
-                        axisIdx === 2,
-                      "border-r-0 rounded-tr-none rounded-br-none":
-                        axisIdx === 0,
-                      "rounded-none": axisIdx === 1,
-                    })}
-                    value={binding.value}
-                    onChange={binding.onChange}
-                  />
-                </div>
-              );
-            })}
+          <div>
+            <h3 className="text-white font-semibold capitalize">
+              {selectedMesh.type}
+            </h3>
+            <p className="text-xs text-neutral-400">Object Properties</p>
           </div>
         </div>
-      ))}
+      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(tab) => setActiveTab(tab as T_TabsConfig["id"])}
+        className="flex flex-col h-full"
+      >
+        <ScrollArea className="w-full whitespace-nowrap">
+          <ScrollBar orientation="horizontal" />
+          <TabsList className="inline-flex gap-2 h-auto bg-transparent rounded-lg p-4">
+            {TabsConfig.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="cursor-pointer hover:bg-neutral-700"
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-md font-light leading-none">
+                    {tab.label}
+                  </span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </ScrollArea>
+        <div className="overflow-hidden flex-1">
+          <ScrollArea className="h-full">
+            <div className="px-4">
+              {TabsConfig.map((tabConfig) => (
+                <TabsContent
+                  value={tabConfig.id}
+                  key={tabConfig.id}
+                  className="mt-0 space-y-4"
+                >
+                  <tabConfig.component mesh={selectedMesh} key={tabConfig.id} />
+                </TabsContent>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      </Tabs>
     </aside>
   );
 }

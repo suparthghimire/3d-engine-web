@@ -11,7 +11,7 @@ function App() {
   const { getItem, setItem } = useLocalStorage();
   const storedDialogOpen = getItem<boolean>(
     LOCALSTORAGE_KEYS.app_info_dialog_startup,
-    false
+    true
   );
 
   const selectedMesh = useSceneStore(
@@ -43,11 +43,7 @@ function App() {
       <header className="absolute top-5 left-5 z-20">
         <Header />
       </header>
-      {selectedMesh && (
-        <div className="absolute z-20 w-fit top-20 left-5">
-          <SidePanel />
-        </div>
-      )}
+      <SidePanel open={!!selectedMesh} />
       <AppInfoDialog
         showOnStartup={showOnStartup}
         onShowOnStartupChange={handleShowOnStartup}

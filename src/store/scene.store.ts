@@ -1,16 +1,6 @@
 import { create } from "zustand";
 import { createId } from "@paralleldrive/cuid2";
-export type T_MeshType = "plane" | "cube" | "sphere" | "cone" | "cylinder";
-
-export type T_Mesh = {
-  id: string;
-  type: T_MeshType;
-  position: [number, number, number];
-  rotation: [number, number, number];
-  scale: [number, number, number];
-
-  color: string;
-};
+import type { T_Mesh, T_MeshType } from "@/lib/types/mesh.types";
 
 // Constants
 export const DEFAULT_ORBIT_POSITION = [10, 10, 10] as [number, number, number];
@@ -69,6 +59,7 @@ export const useSceneStore = create<T_SceneStore>((set) => {
           rotation: [0, 0, 0],
           scale: [1, 1, 1],
           type: meshType,
+          materialType: "standard",
         };
         return {
           ...pv,
